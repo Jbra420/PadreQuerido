@@ -1,30 +1,34 @@
 // ════════════════════════════════════════════════════════════
-//  CONFIGURACIÓN DE FOTOS - Edita aquí tus fotos con papá
+//  CÓMO AGREGAR TUS FOTOS:
+//
+//  1. Copia tus fotos a esta carpeta:
+//        src/assets/photos/
+//
+//  2. Renombra tus archivos como:
+//        foto1.jpg   foto2.jpg   foto3.jpg
+//     (también funciona .png, .jpeg, .webp)
+//
+//  3. Si quieres más o menos fotos, agrega o elimina
+//     líneas de import y objetos en el array photos[]
+//
+//  4. Cambia el texto de caption al pie de cada foto
 // ════════════════════════════════════════════════════════════
-//
-// OPCIÓN A — URLs directas (Google Photos, iCloud, etc.)
-//   Comparte la foto → copia el enlace → pégalo como src
-//
-// OPCIÓN B — Archivos locales
-//   1. Copia tus fotos a la carpeta /src/assets/
-//   2. Importa cada una: import foto1 from './assets/foto1.jpg'
-//   3. Usa la variable como src: src: foto1
-//
-// Para eliminar una foto, borra el objeto completo { src, caption }
-// Para agregar más, copia y pega un bloque y cámbialo
-// ════════════════════════════════════════════════════════════
+
+import foto1 from './assets/photos/foto1.jpg'
+import foto2 from './assets/photos/foto2.jpg'
+import foto3 from './assets/photos/foto3.jpg'
 
 export const photos = [
   {
-    src: null,             // ← Reemplaza null con tu URL o import
-    caption: 'Siempre juntos 🧡',
+    src: foto1,
+    caption: 'Siempre juntos 💙',
   },
   {
-    src: null,             // ← Foto 2
+    src: foto2,
     caption: 'Mi mejor maestro',
   },
   {
-    src: null,             // ← Foto 3
+    src: foto3,
     caption: 'De ti aprendí todo',
   },
 ]
