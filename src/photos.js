@@ -21,7 +21,7 @@ import foto6 from './assets/photos/foto6.jpeg'
 import foto7 from './assets/photos/foto7.jpeg'
 import foto8 from './assets/photos/foto8.jpeg'
 import foto9 from './assets/photos/foto9.jpeg'
-import foto10 from './assets/photos/foto10.jpeg'
+import foto10 from './assets/photos/foto10.jpg'
 
 export const photos = [
   { src: foto1, caption: 'Siempre juntos 💙' },
