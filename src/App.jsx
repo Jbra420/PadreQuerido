@@ -155,26 +155,6 @@ function FloatingMusicPlayer() {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  SWIPE HOOK
-// ══════════════════════════════════════════════════════════════
-function useSwipe(onLeft, onRight) {
-  const startX = useRef(null)
-  const startY = useRef(null)
-  const onTouchStart = useCallback((e) => {
-    startX.current = e.touches[0].clientX
-    startY.current = e.touches[0].clientY
-  }, [])
-  const onTouchEnd = useCallback((e) => {
-    if (startX.current === null) return
-    const dx = startX.current - e.changedTouches[0].clientX
-    const dy = Math.abs(startY.current - e.changedTouches[0].clientY)
-    if (Math.abs(dx) > 45 && Math.abs(dx) > dy) { dx > 0 ? onLeft?.() : onRight?.() }
-    startX.current = null
-  }, [onLeft, onRight])
-  return { onTouchStart, onTouchEnd }
-}
-
-// ══════════════════════════════════════════════════════════════
 //  SCREEN 1 — WELCOME
 // ══════════════════════════════════════════════════════════════
 function Screen1({ onNext }) {
@@ -276,12 +256,15 @@ function useTypewriter(text, speed = 40, startDelay = 600) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  SCREEN 3 — TYPEWRITER
+//  SCREEN 3 — TYPEWRITER + FOTO 1
 // ══════════════════════════════════════════════════════════════
 function Screen3({ onNext }) {
   const fullText = 'Porque de ti aprendí a levantarme 200 veces después de caer 100.'
   const typed    = useTypewriter(fullText, 38, 1000)
   const done     = typed.length === fullText.length
+  
+  const photo = photoConfig[0]
+
   return (
     <div className="screen-slide-enter relative flex flex-col items-center justify-start min-h-screen px-6 pt-16 pb-10 overflow-y-auto"
       style={{ background: 'linear-gradient(160deg, #020c1b 0%, #0a1930 40%, #1e3a8a 100%)' }}>
@@ -291,21 +274,28 @@ function Screen3({ onNext }) {
         style={{ fontFamily:"'Inter',sans-serif", letterSpacing:'0.18em' }}>
         Me enseñaste con el ejemplo
       </p>
-      <div className="relative w-64 h-64 rounded-3xl mb-8 flex items-center justify-center overflow-hidden"
+      
+      {/* PHOTO 1 INSTEAD OF PLACEHOLDER */}
+      <div className="relative w-64 h-64 rounded-2xl mb-8 flex flex-col items-center justify-center overflow-hidden animate-fade-in"
         style={{
-          background:'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-          border:'2px dashed rgba(147,197,253,0.4)',
+          background:'rgba(240,248,255,0.96)',
           boxShadow:'0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
+          padding: '8px 8px 36px 8px',
+          transform: 'rotate(-2deg)'
         }}>
-        <div className="text-center">
-          <div className="text-5xl mb-3">📸</div>
-          <p className="text-blue-300 text-sm opacity-70" style={{ fontFamily:"'Inter',sans-serif" }}>Foto con papá</p>
+        <div className="w-full h-full rounded-lg overflow-hidden" style={{ background: '#0a1930' }}>
+           {photo?.src ? (
+             <img src={photo.src} alt="Foto 1" className="w-full h-full object-cover" />
+           ) : (
+             <div className="w-full h-full flex items-center justify-center opacity-50">📷</div>
+           )}
         </div>
-        {['top-3 left-3 border-t-2 border-l-2','top-3 right-3 border-t-2 border-r-2',
-          'bottom-3 left-3 border-b-2 border-l-2','bottom-3 right-3 border-b-2 border-r-2'].map((cls,i) => (
-          <div key={i} className={`absolute w-5 h-5 ${cls}`} style={{ borderColor:'rgba(147,197,253,0.5)' }} />
-        ))}
+        <p className="absolute bottom-2 text-center w-full left-0"
+          style={{ fontFamily:"'Playfair Display',serif", fontSize:'0.85rem', color:'#0f2d5e', fontStyle:'italic' }}>
+          {photo?.caption || "Siempre juntos"}
+        </p>
       </div>
+
       <div className="w-full max-w-sm text-center mb-10 px-2" style={{ minHeight:'90px' }}>
         <p className="text-white leading-relaxed"
           style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(1.1rem,4vw,1.4rem)', fontStyle:'italic' }}>
@@ -326,151 +316,12 @@ function Screen3({ onNext }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  SCREEN 3.5 — PHOTO GALLERY  📸
-// ══════════════════════════════════════════════════════════════
-function PhotoPlaceholder({ index }) {
-  return (
-    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-      <div className="text-5xl opacity-40">📷</div>
-      <p className="text-blue-300 text-sm text-center px-4 opacity-60" style={{ fontFamily:"'Inter',sans-serif" }}>
-        Foto {index + 1}
-      </p>
-      <p className="text-blue-200 text-xs text-center px-6 opacity-40" style={{ fontFamily:"'Inter',sans-serif" }}>
-        Edita src/photos.js para agregar tus fotos
-      </p>
-    </div>
-  )
-}
-
-function ScreenPhotos({ onNext }) {
-  const [current, setCurrent] = useState(0)
-  const [dir, setDir]         = useState(0)
-  const [animating, setAnim]  = useState(false)
-  const total = photoConfig.length
-
-  function go(next) {
-    if (animating || next === current) return
-    setDir(next > current ? 1 : -1)
-    setAnim(true)
-    setTimeout(() => { setCurrent(next); setDir(0); setAnim(false) }, 320)
-  }
-
-  const swipe = useSwipe(
-    () => current < total - 1 && go(current + 1),
-    () => current > 0 && go(current - 1),
-  )
-
-  const photo = photoConfig[current]
-
-  return (
-    <div className="screen-slide-enter relative flex flex-col items-center justify-start min-h-screen overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #020c1b 0%, #0f2d5e 50%, #1e3a8a 100%)' }}>
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(96,165,250,0.15) 0%, transparent 65%)' }} />
-
-      {/* Header */}
-      <div className="relative z-10 w-full px-6 pt-14 pb-4 text-center">
-        <p className="text-blue-300 text-xs tracking-widest uppercase opacity-70"
-          style={{ fontFamily:"'Inter',sans-serif", letterSpacing:'0.18em' }}>
-          Momentos que guardo en el corazón
-        </p>
-        <h2 className="text-white mt-2"
-          style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(1.4rem,5vw,1.8rem)', fontWeight:700 }}>
-          Nuestra historia
-        </h2>
-      </div>
-
-      {/* Polaroid */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full px-6 py-2" {...swipe}>
-        <div className="relative w-full transition-all duration-300" style={{
-          maxWidth:'280px',
-          opacity: animating ? 0 : 1,
-          transform: animating
-            ? `translateX(${dir * -60}px) rotate(${dir * -3}deg)`
-            : 'translateX(0) rotate(0deg)',
-        }}>
-          {/* Polaroid frame */}
-          <div className="rounded-2xl overflow-hidden"
-            style={{
-              background:'rgba(240,248,255,0.96)',
-              boxShadow:'0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
-              padding:'12px 12px 52px 12px',
-              transform:`rotate(${(current % 3 - 1) * 1.5}deg)`,
-            }}>
-            <div className="w-full rounded-xl overflow-hidden flex items-center justify-center"
-              style={{ aspectRatio:'1', background:'linear-gradient(135deg, #0a1930 0%, #1e3a8a 100%)', position:'relative' }}>
-              {photo.src ? (
-                <img src={photo.src} alt={photo.caption} className="w-full h-full object-cover" style={{ display:'block' }} />
-              ) : (
-                <PhotoPlaceholder index={current} />
-              )}
-            </div>
-            <p className="text-center mt-3"
-              style={{ fontFamily:"'Playfair Display',serif", fontSize:'0.9rem', color:'#0f2d5e', fontStyle:'italic' }}>
-              {photo.caption}
-            </p>
-          </div>
-          {/* Shadow card behind */}
-          <div className="absolute inset-0 rounded-2xl -z-10"
-            style={{ background:'rgba(240,248,255,0.5)', transform:'rotate(3deg) translateY(4px)',
-              boxShadow:'0 4px 20px rgba(0,0,0,0.3)', padding:'12px 12px 52px 12px' }} />
-        </div>
-        <p className="mt-6 text-blue-400 text-xs opacity-50 text-center" style={{ fontFamily:"'Inter',sans-serif" }}>
-          ← Desliza para ver más →
-        </p>
-      </div>
-
-      {/* Dots */}
-      <div className="relative z-10 flex justify-center gap-2 py-4">
-        {photoConfig.map((_,i) => (
-          <button key={i} onClick={() => go(i)} className="rounded-full transition-all duration-400"
-            style={{ width:i===current?'24px':'8px', height:'8px',
-              background:i===current?'#3b82f6':'rgba(255,255,255,0.25)' }} />
-        ))}
-      </div>
-
-      {/* Nav arrows */}
-      <div className="relative z-10 flex justify-between w-full px-6 pb-4">
-        <button onClick={() => current > 0 && go(current - 1)}
-          className="rounded-full flex items-center justify-center transition-all duration-200 active:scale-90"
-          style={{
-            width:'44px', height:'44px',
-            background: current > 0 ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
-            border: current > 0 ? '1px solid rgba(96,165,250,0.4)' : '1px solid rgba(255,255,255,0.1)',
-            opacity: current > 0 ? 1 : 0.3, color:'#60a5fa', fontSize:'1.2rem',
-          }}>‹</button>
-
-        {current === total - 1 ? (
-          <button onClick={onNext}
-            className="px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 active:scale-95"
-            style={{ background:'linear-gradient(135deg,#3b82f6,#1d4ed8)', color:'#eff6ff',
-              fontFamily:"'Inter',sans-serif", boxShadow:'0 4px 16px rgba(59,130,246,0.5)' }}>
-            Continuar →
-          </button>
-        ) : (
-          <div style={{ width:'44px' }} />
-        )}
-
-        <button onClick={() => current < total - 1 && go(current + 1)}
-          className="rounded-full flex items-center justify-center transition-all duration-200 active:scale-90"
-          style={{
-            width:'44px', height:'44px',
-            background: current < total - 1 ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
-            border: current < total - 1 ? '1px solid rgba(96,165,250,0.4)' : '1px solid rgba(255,255,255,0.1)',
-            opacity: current < total - 1 ? 1 : 0.3, color:'#60a5fa', fontSize:'1.2rem',
-          }}>›</button>
-      </div>
-    </div>
-  )
-}
-
-// ══════════════════════════════════════════════════════════════
-//  SCREEN 4 — TIMELINE CARDS
+//  SCREEN 4 — TIMELINE CARDS + FOTOS 2, 3, 4
 // ══════════════════════════════════════════════════════════════
 const timelineItems = [
-  { icon:'⚡', title:'El oficio',        detail:'Me hiciste electricista. Cada cable que conecto lleva algo tuyo.' },
-  { icon:'💻', title:'La perseverancia', detail:'Gracias a ti estudio programación y no paro aunque sea difícil.' },
-  { icon:'💙', title:'La identidad',     detail:'Soy quien soy — con mis errores y mis logros — porque tú me formaste.' },
+  { icon:'⚡', title:'El oficio',        detail:'Me hiciste electricista. Cada cable que conecto lleva algo tuyo.', photoIndex: 1 },
+  { icon:'💻', title:'La perseverancia', detail:'Gracias a ti estudio programación y no paro aunque sea difícil.', photoIndex: 2 },
+  { icon:'💙', title:'La identidad',     detail:'Soy quien soy — con mis errores y mis logros — porque tú me formaste.', photoIndex: 3 },
 ]
 
 function Screen4({ onNext }) {
@@ -487,18 +338,21 @@ function Screen4({ onNext }) {
         style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(1.5rem,5vw,2rem)', fontWeight:700 }}>
         Lo que me diste sin saberlo
       </h2>
-      <p className="text-blue-400 text-xs mb-8 opacity-70 tracking-wider">Toca cada carta para descubrir</p>
+      <p className="text-blue-400 text-xs mb-6 opacity-70 tracking-wider">Toca cada carta para descubrir</p>
+      
       <div className="w-full max-w-sm flex flex-col gap-4 mb-10">
         {timelineItems.map((item,i) => {
           const isOpen = openIndex === i
+          const photo = photoConfig[item.photoIndex]
+
           return (
             <div key={i} onClick={() => toggle(i)}
-              className="rounded-2xl p-5 cursor-pointer transition-all duration-300 active:scale-98"
+              className="rounded-2xl p-5 cursor-pointer transition-all duration-500 active:scale-98 overflow-hidden"
               style={{
-                background: isOpen ? 'linear-gradient(135deg,rgba(59,130,246,0.25),rgba(29,78,216,0.18))' : 'rgba(255,255,255,0.05)',
-                border: isOpen ? '1.5px solid rgba(96,165,250,0.5)' : '1.5px solid rgba(255,255,255,0.1)',
+                background: isOpen ? 'linear-gradient(135deg,rgba(59,130,246,0.3),rgba(29,78,216,0.25))' : 'rgba(255,255,255,0.05)',
+                border: isOpen ? '1.5px solid rgba(96,165,250,0.6)' : '1.5px solid rgba(255,255,255,0.1)',
                 backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)',
-                boxShadow: isOpen ? '0 4px 24px rgba(59,130,246,0.2)' : 'none',
+                boxShadow: isOpen ? '0 8px 32px rgba(59,130,246,0.3)' : 'none',
               }}>
               <div className="flex items-center gap-4">
                 <span className="text-3xl">{item.icon}</span>
@@ -506,14 +360,21 @@ function Screen4({ onNext }) {
                 <span className="text-blue-300 text-lg transition-transform duration-300"
                   style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
               </div>
-              <div className={`card-content ${isOpen ? 'expanded' : 'collapsed'}`}>
-                <p className="text-blue-100 text-sm leading-relaxed mt-4 pl-1"
+              <div className={`transition-all duration-500 ease-in-out`}
+                   style={{ maxHeight: isOpen ? '400px' : '0px', opacity: isOpen ? 1 : 0, overflow: 'hidden' }}>
+                <p className="text-blue-100 text-sm leading-relaxed mt-4 mb-4 pl-1"
                   style={{ fontFamily:"'Playfair Display',serif", fontStyle:'italic' }}>{item.detail}</p>
+                {/* PHOTO IN CARD */}
+                <div className="w-full rounded-xl overflow-hidden mt-2"
+                  style={{ aspectRatio:'16/10', background:'#000', border:'1px solid rgba(255,255,255,0.15)' }}>
+                  {photo?.src && <img src={photo.src} className="w-full h-full object-cover" alt="recuerdo" />}
+                </div>
               </div>
             </div>
           )
         })}
       </div>
+      
       {canContinue && (
         <button onClick={onNext}
           className="animate-fade-in px-10 py-4 rounded-full text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95"
@@ -530,7 +391,7 @@ function Screen4({ onNext }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  SCREEN 5 — CINEMATIC PHRASES
+//  SCREEN 5 — CINEMATIC PHRASES + FOTOS 5 AL 9
 // ══════════════════════════════════════════════════════════════
 const phrases = [
   'Quizás no soy lo que soñaste para mí...',
@@ -546,10 +407,20 @@ const phrases = [
   'No me rindo. Nunca. Por ti.',
 ]
 
+// Indexes of photos 4 to 8 inside photoConfig to show behind the text
+const cinematicPhotos = [
+  photoConfig[4]?.src, 
+  photoConfig[5]?.src, 
+  photoConfig[6]?.src, 
+  photoConfig[7]?.src, 
+  photoConfig[8]?.src
+]
+
 function Screen5({ onNext }) {
   const [index, setIndex]       = useState(0)
   const [visible, setVisible]   = useState(true)
   const [finished, setFinished] = useState(false)
+  
   useEffect(() => {
     if (finished) return
     const t = setTimeout(() => {
@@ -557,22 +428,38 @@ function Screen5({ onNext }) {
       setTimeout(() => {
         if (index + 1 >= phrases.length) { setFinished(true) }
         else { setIndex(p => p + 1); setVisible(true) }
-      }, 700)
-    }, 3800)
+      }, 900) // Slower fade out
+    }, 4500) // Slower reading time
     return () => clearTimeout(t)
   }, [index, visible, finished])
 
+  // Change background photo every 2 phrases
+  const currentPhotoIndex = Math.min(Math.floor(index / 2), cinematicPhotos.length - 1)
+  const currentPhotoSrc = cinematicPhotos[currentPhotoIndex]
+
   return (
     <div className="screen-slide-enter relative flex flex-col items-center justify-center min-h-screen px-8 text-center overflow-hidden"
-      style={{ background:'linear-gradient(180deg, #000810 0%, #020c1b 50%, #0f2d5e 100%)' }}>
-      {Array.from({ length: 20 }).map((_,i) => (
+      style={{ background:'#000' }}>
+      
+      {/* DYNAMIC PHOTO BACKGROUND */}
+      {currentPhotoSrc && (
+        <div className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+             style={{ opacity: visible && !finished ? 0.35 : 0.1 }}>
+          <img key={currentPhotoSrc} src={currentPhotoSrc} className="w-full h-full object-cover animate-fade-in" alt="bg" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020c1b] via-transparent to-[#020c1b] opacity-80" />
+        </div>
+      )}
+
+      {/* PARTICLES */}
+      {Array.from({ length: 15 }).map((_,i) => (
         <div key={i} className="absolute rounded-full"
           style={{ background:'rgba(147,197,253,0.6)',
             width:Math.random()*2+1+'px', height:Math.random()*2+1+'px',
             top:Math.random()*70+'%', left:Math.random()*100+'%', opacity:Math.random()*0.5+0.1 }} />
       ))}
+      
       {!finished ? (
-        <div className="transition-all duration-700 max-w-xs"
+        <div className="relative z-10 transition-all duration-1000 max-w-sm w-full"
           style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(-16px)' }}>
           <div className="flex justify-center gap-2 mb-10">
             {phrases.map((_,i) => (
@@ -582,13 +469,13 @@ function Screen5({ onNext }) {
             ))}
           </div>
           <p className="text-white leading-relaxed"
-            style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(1.3rem,5vw,1.8rem)',
-              fontStyle:'italic', fontWeight:400 }}>
+            style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(1.4rem,5.5vw,2rem)',
+              fontStyle:'italic', fontWeight:400, textShadow:'0 2px 10px rgba(0,0,0,0.8)' }}>
             {phrases[index]}
           </p>
         </div>
       ) : (
-        <div className="animate-fade-in flex flex-col items-center gap-6">
+        <div className="relative z-10 animate-fade-in flex flex-col items-center gap-6 mt-10">
           <div className="text-4xl animate-pulse-heart">💙</div>
           <button onClick={onNext}
             className="px-10 py-5 rounded-full text-base font-semibold tracking-wide transition-all duration-200 active:scale-95"
@@ -603,11 +490,14 @@ function Screen5({ onNext }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  SCREEN 6 — FINAL MESSAGE
+//  SCREEN 6 — FINAL MESSAGE + FOTO 10
 // ══════════════════════════════════════════════════════════════
 function Screen6() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [showSong, setShowSong]         = useState(false)
+  
+  const finalPhoto = photoConfig[9]
+
   useEffect(() => {
     setShowConfetti(true)
     const t = setTimeout(() => setShowConfetti(false), 5000)
@@ -615,16 +505,26 @@ function Screen6() {
   }, [])
 
   return (
-    <div className="screen-slide-enter relative flex flex-col items-center justify-start min-h-screen px-8 pt-12 pb-10 overflow-y-auto text-center"
+    <div className="screen-slide-enter relative flex flex-col items-center justify-start min-h-screen px-8 pt-10 pb-12 overflow-y-auto text-center"
       style={{ background:'linear-gradient(160deg, #020c1b 0%, #0f2d5e 30%, #1e3a8a 70%, #1d4ed8 100%)' }}>
       {showConfetti && <Confetti />}
       <div className="absolute inset-0 pointer-events-none"
         style={{ background:'radial-gradient(ellipse at 50% 50%, rgba(147,197,253,0.2) 0%, transparent 65%)' }} />
 
-      <p className="text-blue-300 text-xs tracking-widest uppercase mb-8 opacity-60"
-        style={{ letterSpacing:'0.22em', fontFamily:"'Inter',sans-serif" }}>
-        ✦ Feliz Día del Padre ✦
-      </p>
+      {/* FINAL PHOTO 10 POLAROID */}
+      <div className="relative z-10 w-full max-w-[220px] mb-8 mt-2 rotate-2 hover:rotate-0 transition-transform duration-500">
+         <div className="rounded-2xl overflow-hidden shadow-2xl"
+              style={{ background:'rgba(240,248,255,0.96)', padding:'8px 8px 32px 8px',
+                       boxShadow:'0 10px 40px rgba(0,0,0,0.5)' }}>
+           <div className="w-full rounded-xl overflow-hidden aspect-square" style={{ background: '#0a1930' }}>
+              {finalPhoto?.src && <img src={finalPhoto.src} className="w-full h-full object-cover" alt="Final" />}
+           </div>
+           <p className="absolute bottom-2 text-center w-full left-0"
+              style={{ fontFamily:"'Playfair Display',serif", fontSize:'0.85rem', color:'#0f2d5e', fontStyle:'italic' }}>
+              {finalPhoto?.caption || "Feliz Día"}
+           </p>
+         </div>
+      </div>
 
       <div className="max-w-sm mb-8 relative z-10">
         <p className="text-white leading-relaxed"
@@ -659,7 +559,7 @@ function Screen6() {
       </div>
 
       {/* Song CTA */}
-      <div className="relative z-10 w-full max-w-sm">
+      <div className="relative z-10 w-full max-w-sm mb-10">
         {!showSong ? (
           <button onClick={() => setShowSong(true)}
             className="w-full py-5 px-6 rounded-2xl flex items-center gap-4 transition-all duration-200 active:scale-95"
@@ -681,7 +581,7 @@ function Screen6() {
             <span className="text-blue-400 text-lg">▶</span>
           </button>
         ) : (
-          <div className="rounded-2xl overflow-hidden"
+          <div className="rounded-2xl overflow-hidden animate-fade-in"
             style={{ background:'rgba(0,0,0,0.6)', border:'1px solid rgba(96,165,250,0.3)',
               boxShadow:'0 4px 24px rgba(0,0,0,0.5)' }}>
             <div className="px-4 pt-4 pb-2 text-left">
@@ -708,7 +608,8 @@ function Screen6() {
 // ══════════════════════════════════════════════════════════════
 //  APP ROOT
 // ══════════════════════════════════════════════════════════════
-const SCREENS = [Screen1, Screen2, Screen3, ScreenPhotos, Screen4, Screen5, Screen6]
+// NOTE: ScreenPhotos is removed. Flow is smoother and more emotional.
+const SCREENS = [Screen1, Screen2, Screen3, Screen4, Screen5, Screen6]
 
 export default function App() {
   const [screen, setScreen] = useState(0)
