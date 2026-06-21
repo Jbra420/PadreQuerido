@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { photos as photoConfig } from './photos.js'
+import localAudio from './assets/A Mi Papá .mp3'
 
 // ══════════════════════════════════════════════════════════════
 //  CONFETTI
@@ -67,87 +68,45 @@ function FloatingParticles() {
 const SONG_ID = 'gsptwNLwu0Y'
 
 function FloatingMusicPlayer() {
-  const [open, setOpen]       = useState(false)
-  const [loaded, setLoaded]   = useState(false)
   const [playing, setPlaying] = useState(false)
+  const audioRef = useRef(null)
 
-  const embedSrc = loaded
-    ? `https://www.youtube.com/embed/${SONG_ID}?autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1&enablejsapi=0`
-    : ''
+  useEffect(() => {
+    if (playing) {
+      audioRef.current?.play().catch(e => console.error("Error reproduciendo audio:", e))
+    } else {
+      audioRef.current?.pause()
+    }
+  }, [playing])
 
   function toggle() {
-    if (!open) { setLoaded(true); setPlaying(true) }
-    else        { setPlaying(false) }
-    setOpen(o => !o)
+    setPlaying(!playing)
   }
 
   return (
     <>
-      {/* Backdrop */}
-      {open && (
-        <div className="fixed inset-0 z-40"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-          onClick={toggle} />
-      )}
-
-      {/* Bottom drawer */}
-      <div className="fixed left-0 right-0 z-50 transition-transform duration-500"
-        style={{ bottom: 0, transform: open ? 'translateY(0)' : 'translateY(100%)', maxWidth: '430px', margin: '0 auto' }}>
-        <div className="rounded-t-3xl overflow-hidden"
-          style={{
-            background: 'linear-gradient(160deg, #020c1b 0%, #0f2d5e 100%)',
-            border: '1px solid rgba(96,165,250,0.3)',
-            boxShadow: '0 -8px 40px rgba(59,130,246,0.25)',
-          }}>
-          <div className="flex justify-center pt-3 pb-1">
-            <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }} />
-          </div>
-          <div className="flex items-center justify-between px-5 pb-3">
-            <div>
-              <p className="text-white font-semibold text-sm" style={{ fontFamily:"'Inter',sans-serif" }}>
-                🎵 Para el Día del Padre
-              </p>
-              <p className="text-blue-300 text-xs opacity-70" style={{ fontFamily:"'Inter',sans-serif" }}>
-                Una canción especial para ti, Papá
-              </p>
-            </div>
-            <button onClick={toggle} className="text-blue-300 text-xl opacity-60 hover:opacity-100 transition-opacity"
-              style={{ lineHeight: 1 }}>✕</button>
-          </div>
-          <div className="px-4 pb-6">
-            <div className="rounded-2xl overflow-hidden"
-              style={{ aspectRatio:'16/9', background:'#000', boxShadow:'0 4px 24px rgba(0,0,0,0.5)' }}>
-              {loaded && (
-                <iframe key={playing ? 'play' : 'stop'} width="100%" height="100%"
-                  src={playing ? embedSrc : ''}
-                  title="Canción para Papá" frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen style={{ display:'block' }} />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <audio ref={audioRef} src={localAudio} loop />
       {/* Floating button */}
       <div className="fixed z-50" style={{ bottom:'24px', right:'20px' }}>
         <button onClick={toggle}
           className="relative flex items-center justify-center rounded-full transition-all duration-300 active:scale-90"
           style={{
             width:'56px', height:'56px',
-            background: open
+            background: playing
               ? 'linear-gradient(135deg,#1e40af,#3b82f6)'
               : 'linear-gradient(135deg,#3b82f6,#1d4ed8)',
-            boxShadow: open
+            boxShadow: playing
               ? '0 4px 20px rgba(30,64,175,0.6)'
               : '0 4px 20px rgba(59,130,246,0.7)',
             border: '2px solid rgba(255,255,255,0.2)',
           }}>
-          {!open && (
+          {!playing && (
             <span className="absolute inset-0 rounded-full"
               style={{ animation:'pulse-ring 2s ease-out infinite', border:'2px solid rgba(59,130,246,0.6)' }} />
           )}
-          <span className="text-xl">{open ? '✕' : '🎵'}</span>
+          <span className="text-xl" style={{ filter: playing ? 'none' : 'grayscale(100%) brightness(200%)' }}>
+            {playing ? '⏸️' : '🎵'}
+          </span>
         </button>
       </div>
     </>
@@ -494,7 +453,6 @@ function Screen5({ onNext }) {
 // ══════════════════════════════════════════════════════════════
 function Screen6() {
   const [showConfetti, setShowConfetti] = useState(false)
-  const [showSong, setShowSong]         = useState(false)
   
   const finalPhoto = photoConfig[9]
 
@@ -558,46 +516,23 @@ function Screen6() {
         💙
       </div>
 
-      {/* Song CTA */}
+      {/* Static YouTube Video Box */}
       <div className="relative z-10 w-full max-w-sm mb-10">
-        {!showSong ? (
-          <button onClick={() => setShowSong(true)}
-            className="w-full py-5 px-6 rounded-2xl flex items-center gap-4 transition-all duration-200 active:scale-95"
-            style={{
-              background:'rgba(255,255,255,0.06)',
-              border:'1.5px solid rgba(96,165,250,0.4)',
-              backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
-              boxShadow:'0 4px 24px rgba(59,130,246,0.2)',
-            }}>
-            <div className="text-3xl animate-pulse-heart">🎵</div>
-            <div className="text-left flex-1">
-              <p className="text-white text-sm font-semibold" style={{ fontFamily:"'Inter',sans-serif" }}>
-                Una canción para ti
-              </p>
-              <p className="text-blue-300 text-xs opacity-70" style={{ fontFamily:"'Inter',sans-serif" }}>
-                Toca para escuchar mientras lees
-              </p>
-            </div>
-            <span className="text-blue-400 text-lg">▶</span>
-          </button>
-        ) : (
-          <div className="rounded-2xl overflow-hidden animate-fade-in"
-            style={{ background:'rgba(0,0,0,0.6)', border:'1px solid rgba(96,165,250,0.3)',
-              boxShadow:'0 4px 24px rgba(0,0,0,0.5)' }}>
-            <div className="px-4 pt-4 pb-2 text-left">
-              <p className="text-blue-300 text-xs opacity-70" style={{ fontFamily:"'Inter',sans-serif" }}>
-                🎵 Para ti, Papá
-              </p>
-            </div>
-            <div style={{ aspectRatio:'16/9' }}>
-              <iframe width="100%" height="100%"
-                src={`https://www.youtube.com/embed/${SONG_ID}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                title="Canción para Papá" frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen style={{ display:'block' }} />
-            </div>
+        <div className="rounded-2xl overflow-hidden shadow-2xl"
+          style={{ background:'rgba(0,0,0,0.6)', border:'1px solid rgba(96,165,250,0.3)' }}>
+          <div className="px-4 pt-4 pb-2 text-left">
+            <p className="text-blue-300 text-xs opacity-70" style={{ fontFamily:"'Inter',sans-serif" }}>
+              🎵 Para ti, Papá
+            </p>
           </div>
-        )}
+          <div style={{ aspectRatio:'16/9' }}>
+            <iframe width="100%" height="100%"
+              src={`https://www.youtube.com/embed/${SONG_ID}?rel=0&modestbranding=1&playsinline=1`}
+              title="Canción para Papá" frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen style={{ display:'block' }} />
+          </div>
+        </div>
       </div>
 
       <FloatingParticles />
