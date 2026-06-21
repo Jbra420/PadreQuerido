@@ -21,6 +21,7 @@ import foto6 from './assets/photos/foto6.jpeg'
 import foto7 from './assets/photos/foto7.jpeg'
 import foto8 from './assets/photos/foto8.jpeg'
 import foto9 from './assets/photos/foto9.jpeg'
+import foto10 from './assets/photos/foto10.jpeg'
 
 export const photos = [
   { src: foto1, caption: 'Siempre juntos 💙' },
@@ -32,4 +33,5 @@ export const photos = [
   { src: foto7, caption: 'Un recuerdo especial' },
   { src: foto8, caption: 'Siempre en mi corazón' },
   { src: foto9, caption: 'Te amo, Papá 💙' },
+  { src: foto10, caption: 'Para siempre, mi héroe' },
 ]
