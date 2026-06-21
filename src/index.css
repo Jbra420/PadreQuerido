@@ -16,8 +16,8 @@ html, body, #root {
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #1a0a00;
-  color: #fff5eb;
+  background: #020c1b;
+  color: #eff6ff;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -49,8 +49,8 @@ body * {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(251, 146, 60, 0.4), 0 0 40px rgba(251, 146, 60, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(251, 146, 60, 0.8), 0 0 80px rgba(251, 146, 60, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 80px rgba(59, 130, 246, 0.4); }
 }
 
 @keyframes pulse-ring {
