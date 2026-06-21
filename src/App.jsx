@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { photos as photoConfig } from './photos.js'
-import localAudio from './assets/A Mi Papá .mp3'
+import localAudio from './assets/cancion.mp3'
 
 // ══════════════════════════════════════════════════════════════
 //  CONFETTI
