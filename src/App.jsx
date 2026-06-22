@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { photos as photoConfig } from './photos.js'
 import localAudio from './assets/cancion.mp3'
 
@@ -6,7 +6,7 @@ import localAudio from './assets/cancion.mp3'
 //  CONFETTI
 // ══════════════════════════════════════════════════════════════
 function Confetti() {
-  const pieces = Array.from({ length: 60 }, (_, i) => ({
+  const [pieces] = useState(() => Array.from({ length: 60 }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
     delay: `${Math.random() * 2}s`,
@@ -16,7 +16,7 @@ function Confetti() {
     ],
     size: `${6 + Math.random() * 6}px`,
     borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-  }))
+  })))
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
       {pieces.map((p) => (
@@ -67,8 +67,7 @@ function FloatingParticles() {
 // ══════════════════════════════════════════════════════════════
 const SONG_ID = 'gsptwNLwu0Y'
 
-function FloatingMusicPlayer() {
-  const [playing, setPlaying] = useState(false)
+function FloatingMusicPlayer({ playing, setPlaying }) {
   const audioRef = useRef(null)
 
   useEffect(() => {
@@ -116,12 +115,12 @@ function FloatingMusicPlayer() {
 // ══════════════════════════════════════════════════════════════
 //  SCREEN 1 — WELCOME
 // ══════════════════════════════════════════════════════════════
-function Screen1({ onNext }) {
+function Screen1({ onNext, playing }) {
   return (
     <div
-      className="screen-slide-enter relative flex flex-col items-center justify-center min-h-screen px-8 text-center cursor-pointer select-none overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #020c1b 0%, #0f2d5e 35%, #1d4ed8 65%, #3b82f6 100%)' }}
-      onClick={onNext}
+      className="screen-slide-enter relative flex flex-col items-center justify-center min-h-screen px-8 text-center select-none overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #020c1b 0%, #0f2d5e 35%, #1d4ed8 65%, #3b82f6 100%)', cursor: playing ? 'pointer' : 'default' }}
+      onClick={() => { if (playing) onNext(); }}
     >
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(147,197,253,0.18) 0%, transparent 65%)' }} />
@@ -139,13 +138,35 @@ function Screen1({ onNext }) {
         <span className="text-blue-200 text-sm">✦</span>
         <div className="h-px w-12 bg-blue-200" />
       </div>
-      <p className="text-blue-200 text-base font-light tracking-widest uppercase"
-        style={{ fontFamily:"'Inter',sans-serif", letterSpacing:'0.2em' }}>
-        Toca para comenzar
-      </p>
-      <div className="absolute bottom-10 left-0 right-0 flex justify-center">
-        <div className="animate-bounce opacity-50" style={{ color:'#bfdbfe', fontSize:'1.5rem' }}>↓</div>
-      </div>
+      
+      {!playing ? (
+        <div className="flex flex-col items-center animate-fade-in relative z-10 w-full mt-2">
+          <div className="relative group cursor-default">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl blur opacity-30 animate-pulse"></div>
+            <p className="relative text-blue-50 text-[0.95rem] md:text-base font-medium bg-white/10 backdrop-blur-md px-6 py-3.5 rounded-2xl border border-white/20 shadow-xl"
+              style={{ fontFamily:"'Inter',sans-serif" }}>
+              Activa la música antes de empezar 🎵
+            </p>
+          </div>
+          <div className="fixed pointer-events-none" style={{ bottom: '85px', right: '35px', zIndex: 40 }}>
+            <div className="text-blue-300 text-5xl drop-shadow-lg" 
+                 style={{ transform: 'rotate(15deg)', animation: 'bounce 1.5s infinite' }}>
+              ↓
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="animate-fade-in relative z-10 w-full mt-2">
+          <p className="text-blue-200 text-base font-light tracking-widest uppercase"
+            style={{ fontFamily:"'Inter',sans-serif", letterSpacing:'0.2em' }}>
+            Toca para comenzar
+          </p>
+          <div className="absolute -bottom-16 left-0 right-0 flex justify-center">
+            <div className="animate-bounce opacity-50" style={{ color:'#bfdbfe', fontSize:'1.5rem' }}>↓</div>
+          </div>
+        </div>
+      )}
+
       <FloatingParticles />
     </div>
   )
@@ -285,9 +306,12 @@ const timelineItems = [
 
 function Screen4({ onNext }) {
   const [openIndex, setOpenIndex] = useState(null)
-  const allOpened = useRef(new Set())
-  function toggle(i) { setOpenIndex(openIndex === i ? null : i); allOpened.current.add(i) }
-  const canContinue = allOpened.current.size >= timelineItems.length
+  const [openedSet, setOpenedSet] = useState(new Set())
+  function toggle(i) { 
+    setOpenIndex(openIndex === i ? null : i);
+    setOpenedSet(prev => new Set(prev).add(i))
+  }
+  const canContinue = openedSet.size >= timelineItems.length
   return (
     <div className="screen-slide-enter relative flex flex-col items-center justify-start min-h-screen px-5 pt-14 pb-10 overflow-y-auto"
       style={{ background:'linear-gradient(160deg, #020c1b 0%, #0f2d5e 50%, #1e3a8a 100%)' }}>
@@ -379,6 +403,14 @@ function Screen5({ onNext }) {
   const [index, setIndex]       = useState(0)
   const [visible, setVisible]   = useState(true)
   const [finished, setFinished] = useState(false)
+  const [particles] = useState(() => Array.from({ length: 15 }).map((_, i) => ({
+    id: i,
+    width: Math.random() * 2 + 1 + 'px',
+    height: Math.random() * 2 + 1 + 'px',
+    top: Math.random() * 70 + '%',
+    left: Math.random() * 100 + '%',
+    opacity: Math.random() * 0.5 + 0.1
+  })))
   
   useEffect(() => {
     if (finished) return
@@ -410,11 +442,9 @@ function Screen5({ onNext }) {
       )}
 
       {/* PARTICLES */}
-      {Array.from({ length: 15 }).map((_,i) => (
-        <div key={i} className="absolute rounded-full"
-          style={{ background:'rgba(147,197,253,0.6)',
-            width:Math.random()*2+1+'px', height:Math.random()*2+1+'px',
-            top:Math.random()*70+'%', left:Math.random()*100+'%', opacity:Math.random()*0.5+0.1 }} />
+      {particles.map(p => (
+        <div key={p.id} className="absolute rounded-full"
+          style={{ background:'rgba(147,197,253,0.6)', ...p }} />
       ))}
       
       {!finished ? (
@@ -452,12 +482,11 @@ function Screen5({ onNext }) {
 //  SCREEN 6 — FINAL MESSAGE + FOTO 10
 // ══════════════════════════════════════════════════════════════
 function Screen6() {
-  const [showConfetti, setShowConfetti] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(true)
   
   const finalPhoto = photoConfig[9]
 
   useEffect(() => {
-    setShowConfetti(true)
     const t = setTimeout(() => setShowConfetti(false), 5000)
     return () => clearTimeout(t)
   }, [])
@@ -549,6 +578,8 @@ const SCREENS = [Screen1, Screen2, Screen3, Screen4, Screen5, Screen6]
 export default function App() {
   const [screen, setScreen] = useState(0)
   const [key,    setKey]    = useState(0)
+  const [playing, setPlaying] = useState(false)
+
   function next() {
     if (screen < SCREENS.length - 1) { setScreen(s => s + 1); setKey(k => k + 1) }
   }
@@ -556,8 +587,8 @@ export default function App() {
   return (
     <div className="w-full min-h-screen overflow-hidden"
       style={{ maxWidth:'430px', margin:'0 auto', position:'relative' }}>
-      <Screen key={key} onNext={next} />
-      <FloatingMusicPlayer />
+      <Screen key={key} onNext={next} playing={playing} />
+      <FloatingMusicPlayer playing={playing} setPlaying={setPlaying} />
     </div>
   )
 }
